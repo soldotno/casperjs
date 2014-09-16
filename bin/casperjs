@@ -91,8 +91,13 @@ ENGINE_EXECUTABLE = ''
 CASPER_ARGS = []
 CASPER_PATH = os.path.abspath(os.path.join(os.path.dirname(resolve(__file__)),
                                            '..'))
-SYS_ARGS = sys.argv[1:]
 
+NODE_MODULE_BIN = os.path.join(CASPER_PATH, 'node_modules/.bin/')
+
+for ENGINE in SUPPORTED_ENGINES:
+    SUPPORTED_ENGINES[ENGINE]['node_exec'] = os.path.join(NODE_MODULE_BIN, SUPPORTED_ENGINES[ENGINE]['default_exec'])
+
+SYS_ARGS = sys.argv[1:]
 # retrieve the engine name
 for arg in SYS_ARGS:
     if arg.startswith('--engine='):
@@ -104,7 +109,11 @@ if not ENGINE in SUPPORTED_ENGINES:
     sys.exit(1)
 
 ENGINE_NATIVE_ARGS = SUPPORTED_ENGINES[ENGINE]['native_args']
-ENGINE_EXECUTABLE = os.environ.get(SUPPORTED_ENGINES[ENGINE]['env_varname'],
+
+if os.path.isfile(SUPPORTED_ENGINES[ENGINE]['node_exec']):
+    ENGINE_EXECUTABLE = SUPPORTED_ENGINES[ENGINE]['node_exec']
+else:
+    ENGINE_EXECUTABLE = os.environ.get(SUPPORTED_ENGINES[ENGINE]['env_varname'],
                                    SUPPORTED_ENGINES[ENGINE]['default_exec'])
 
 def extract_arg_name(arg):
